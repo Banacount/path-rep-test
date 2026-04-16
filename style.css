@@ -1,0 +1,38 @@
+
+/* Root elements */
+body {
+    margin: 0;
+    padding: 0;
+}
+
+/* General elements */
+#nodeScreen {
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    background-color: white;
+}
+
+#test2 {
+    display: inline;
+    position: absolute;
+    background-color: red;
+    margin-top: 8rem;
+    margin-left: 10rem;
+}
+
+.node-style {
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    font-size: 2rem;
+    text-align: center;
+    padding: 1.2rem;
+    border-radius: 50%;
+    border: 3px solid #525252;
+    background-color: #d1d1d1;
+}
