@@ -1,8 +1,10 @@
 import { Vertex, Edge } from './classes.js'
-var startElement = document.getElementById('test1'), endElement = document.getElementById('test2');
 
 let vertices = []
+let edgeLines = []
+
 const vertexDisplay = document.getElementById("nodeScreen")
+const vertexResult = document.getElementById("results")
 
 function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -37,6 +39,7 @@ const displayInDisplay = () => {
     let stackY = 0
     let padding = 70
 
+    vertexDisplay.innerHTML = ""
     vertices.map((vertex, ind) =>{
         let displayNode = document.createElement("div")
         displayNode.className = "node-style"
@@ -52,11 +55,15 @@ const displayInDisplay = () => {
     })
 }
 const displayLines = () => {
+    for (let i = 0; i < vertices.length; i++) edgeLines.push(0);
+
     vertices.map((vertex) => {
+        let edgeLine = [];
         let lineStart = document.getElementById(`vertexId${vertex.id}`)
         vertex.edges.map((edge) => {
             let lineTo = document.getElementById(`vertexId${edge.connected_to}`)
-            new LeaderLine(
+
+            let line =  new LeaderLine(
                 lineStart, 
                 lineTo,
                 {
@@ -69,8 +76,16 @@ const displayLines = () => {
                     path: "straight" 
                 }
             );
+
+            edgeLine.push(line)
         })
+        edgeLines[vertex.id]= edgeLine
     })
+}
+const stringDistances = () => {
+    let str = ""
+    vertices.map((vertex) => {str = str + `${vertex.distance} |`})
+    return str
 }
 
 // Vertices initialization
@@ -101,4 +116,74 @@ console.log(vertices)
 displayInList()
 displayInDisplay()
 displayLines()
+console.log(edgeLines)
 
+// Slowed bellman algorithm
+let round = 0 
+let i_v = 0
+const bellman_ford_process = setInterval(() => {
+    // Reset line color to grey again every count
+    edgeLines.flat().forEach(line => line.setOptions({ color: '#3d3d3d' }));
+
+    if (round < vertices.length-1) {
+        let hasChanged = false
+        if (i_v < vertices.length) {
+            let vertex = vertices[i_v]
+
+            if (vertex.reached) {
+                vertex.edges.map((edge, i_e) => {
+                    let edge_vertex = vertices[edge.connected_to]
+                    let total_weight = vertex.distance + edge.weight
+
+                    if (edgeLines[i_v][i_e])
+                        edgeLines[i_v][i_e].setOptions({color: 'red'});
+                    vertexResult.innerHTML = stringDistances()
+
+                    if (!edge_vertex.reached || total_weight < edge_vertex.distance) {
+                        edge_vertex.distance  = total_weight
+                        edge_vertex.reached = true
+                        hasChanged = true
+                    }
+                })
+            }
+
+            i_v++
+        }
+
+
+        if (i_v >= vertices.length) {
+            i_v = 0
+
+            if (!hasChanged) {
+                edgeLines.flat().forEach(line => line.setOptions({ color: '#3d3d3d' }));
+                clearInterval(bellman_ford_process)
+            }
+
+            round++
+        }
+    } else {
+        clearInterval(bellman_ford_process)
+    }
+}, 2000)
+
+//Testing shits
+/*
+let v_h = 0
+let e_h = 0
+setInterval(() => {
+    console.log(`Vertex: ${v_h}, Edge: ${e_h}`)
+
+    if (v_h < edgeLines.length) {
+        edgeLines[v_h][e_h].setOptions({
+            color: 'red'
+        })
+
+        if (e_h < edgeLines[v_h].length-1){ 
+            e_h++
+        } else if (v_h < edgeLines.length) {
+            v_h++;
+            e_h = 0;
+        }
+    }
+}, 2000)
+*/

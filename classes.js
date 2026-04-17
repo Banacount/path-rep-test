@@ -1,7 +1,7 @@
 // Vertex class
 export class Vertex {
     constructor (reached, character, index_id, distance) {
-        this.distance = 0
+        this.distance = distance
         this.character = character
         this.id = index_id
         this.reached = reached
