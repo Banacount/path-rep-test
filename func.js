@@ -84,7 +84,7 @@ const displayLines = () => {
 }
 const stringDistances = () => {
     let str = ""
-    vertices.map((vertex) => {str = str + `${vertex.distance} |`})
+    vertices.map((vertex) => {str = str + `${vertex.character}: ${vertex.distance} | `})
     return str
 }
 
@@ -132,7 +132,7 @@ const bellman_ford_process = setInterval(() => {
 
             if (vertex.reached) {
                 vertex.edges.map((edge, i_e) => {
-                    let edge_vertex = vertices[edge.connected_to]
+                    let edge_vertex = vertices.find(v => v.id === edge.connected_to);
                     let total_weight = vertex.distance + edge.weight
 
                     if (edgeLines[i_v][i_e])
