@@ -100,22 +100,30 @@ let round = 0
 let i_v = 0
 let wordExpStr = ""
 let processEnd = false
+let hasChanged = false
+// Properties
+let past_element = null;
 
 const bellman_ford_process = () => {
     // Reset line color to grey again every count
     if (processEnd) return;
+
     edgeLines.flat().forEach(line => line.setOptions({ color: '#3d3d3d' }));
+    if (past_element != null) past_element.style.borderColor = "#525252";
 
     if (round < vertices.length-1) {
-        let hasChanged = false
         if (i_v < vertices.length) {
             let vertex = vertices[i_v]
 
-            wordExpStr = wordExpStr + `In node '${vertex.character}'`
             if (vertex.reached) {
+                wordExpStr = wordExpStr + `In node '${vertex.character}'`;
+                let vertexElement = document.getElementById(`vertexId${vertex.id}`);
+                vertexElement.style.borderColor = "#e09600";
+                past_element = vertexElement;
+
                 vertex.edges.map((edge, i_e) => {
                     let edge_vertex = vertices.find(v => v.id === edge.connected_to);
-                    let total_weight = vertex.distance + edge.weight
+                    let total_weight = vertex.distance + edge.weight;
 
                     if (edgeLines[vertex.id][i_e])
                         edgeLines[vertex.id][i_e].setOptions({color: 'red'});
@@ -155,11 +163,13 @@ const bellman_ford_process = () => {
 
             if (!hasChanged) {
                 edgeLines.flat().forEach(line => line.setOptions({ color: '#3d3d3d' }));
-                wordExplain.innerHTML = "Early end because nothing has changed."
-                processEnd = true
+                wordExplain.innerHTML = "Early end because nothing has changed.";
+                processEnd = true;
+            } else {
+                hasChanged = false;
+                round++;
             }
 
-            round++
         }
     } else {
         wordExplain.innerHTML = "Process ended."
