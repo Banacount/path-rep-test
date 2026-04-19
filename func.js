@@ -3,8 +3,12 @@ import { Vertex, Edge } from './classes.js'
 let vertices = []
 let edgeLines = []
 
+// Display
 const vertexDisplay = document.getElementById("nodeScreen")
 const vertexResult = document.getElementById("results")
+// Controls
+const wordExplain = document.getElementById("wordSalad")
+const playBtn = document.getElementById("playBtn")
 
 function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -37,7 +41,7 @@ const displayInList = () => {
 const displayInDisplay = () => {
     let stackX = 0
     let stackY = 0
-    let padding = 70
+    let padding = 140
 
     vertexDisplay.innerHTML = ""
     vertices.map((vertex, ind) =>{
@@ -45,7 +49,7 @@ const displayInDisplay = () => {
         displayNode.className = "node-style"
         displayNode.id = `vertexId${vertex.id}`
         displayNode.innerHTML = vertex.character
-        displayNode.style.top = padding + stackY + "px";
+        displayNode.style.top = (padding * 2) + stackY + "px";
         displayNode.style.left = padding + stackX + "px";
         vertexDisplay.append(displayNode)
 
@@ -73,7 +77,7 @@ const displayLines = () => {
                         fontSize: '30px',
                         color: 'green'
                     }),
-                    path: "straight" 
+                    path: "straight"
                 }
             );
 
@@ -84,7 +88,7 @@ const displayLines = () => {
 }
 const stringDistances = () => {
     let str = ""
-    vertices.map((vertex) => {str = str + `${vertex.character}: ${vertex.distance} | `})
+    vertices.map((vertex) => {str = str + `${vertex.character}: ${(vertex.reached) ? vertex.distance : "∞"} | `})
     return str
 }
 
@@ -121,8 +125,12 @@ console.log(edgeLines)
 // Slowed bellman algorithm
 let round = 0 
 let i_v = 0
-const bellman_ford_process = setInterval(() => {
+let wordExpStr = ""
+let processEnd = false
+
+const bellman_ford_process = () => {
     // Reset line color to grey again every count
+    if (processEnd) return;
     edgeLines.flat().forEach(line => line.setOptions({ color: '#3d3d3d' }));
 
     if (round < vertices.length-1) {
@@ -130,24 +138,42 @@ const bellman_ford_process = setInterval(() => {
         if (i_v < vertices.length) {
             let vertex = vertices[i_v]
 
+            wordExpStr = wordExpStr + `In node '${vertex.character}'`
             if (vertex.reached) {
                 vertex.edges.map((edge, i_e) => {
                     let edge_vertex = vertices.find(v => v.id === edge.connected_to);
                     let total_weight = vertex.distance + edge.weight
 
-                    if (edgeLines[i_v][i_e])
-                        edgeLines[i_v][i_e].setOptions({color: 'red'});
-                    vertexResult.innerHTML = stringDistances()
+                    if (edgeLines[vertex.id][i_e])
+                        edgeLines[vertex.id][i_e].setOptions({color: 'red'});
+
+                    // Explain the thing hehe
+                    if (i_e == 0) wordExpStr = wordExpStr + ", looking at edges";
 
                     if (!edge_vertex.reached || total_weight < edge_vertex.distance) {
+                        // Explain thing again
+                        if (!edge_vertex.reached) wordExpStr = wordExpStr + `, found another node called '${edge_vertex.character}'`;
+                        else wordExpStr = wordExpStr + `, efficient distance found for node '${edge_vertex.character}'`;
+                        
                         edge_vertex.distance  = total_weight
                         edge_vertex.reached = true
                         hasChanged = true
                     }
+
+                    vertexResult.innerHTML = stringDistances()
                 })
+            } else {
+                i_v++
+                wordExpStr = ""
+                bellman_ford_process()
+                return
             }
 
             i_v++
+            if (wordExpStr != "") wordExpStr = wordExpStr + ".";
+            wordExplain.innerHTML = wordExpStr
+            console.log(wordExpStr)
+            wordExpStr = ""
         }
 
 
@@ -156,34 +182,18 @@ const bellman_ford_process = setInterval(() => {
 
             if (!hasChanged) {
                 edgeLines.flat().forEach(line => line.setOptions({ color: '#3d3d3d' }));
-                clearInterval(bellman_ford_process)
+                wordExplain.innerHTML = "Early end because nothing has changed."
+                processEnd = true
             }
 
             round++
         }
     } else {
-        clearInterval(bellman_ford_process)
+        wordExplain.innerHTML = "Process ended."
+        processEnd = true
     }
-}, 2000)
+}
 
-//Testing shits
-/*
-let v_h = 0
-let e_h = 0
-setInterval(() => {
-    console.log(`Vertex: ${v_h}, Edge: ${e_h}`)
-
-    if (v_h < edgeLines.length) {
-        edgeLines[v_h][e_h].setOptions({
-            color: 'red'
-        })
-
-        if (e_h < edgeLines[v_h].length-1){ 
-            e_h++
-        } else if (v_h < edgeLines.length) {
-            v_h++;
-            e_h = 0;
-        }
-    }
-}, 2000)
-*/
+playBtn.addEventListener('click', () => {
+    bellman_ford_process()
+})
